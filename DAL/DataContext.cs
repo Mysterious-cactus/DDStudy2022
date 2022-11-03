@@ -27,5 +27,7 @@ namespace DAL
             => optionsBuilder.UseNpgsql(b => b.MigrationsAssembly("Api"));
         //добавляем сущность User в качестве DbSet'a
         public DbSet<User> Users => Set<User>();
+        //добавляем сессии
+        public DbSet<UserSession> UserSessions => Set<UserSession>();
     }
 }

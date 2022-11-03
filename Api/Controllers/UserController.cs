@@ -28,7 +28,7 @@ namespace Api.Controllers
             {
                 throw new Exception("user exists");
             }
-            var temp = await _userService.CreateUser(model);
+            await _userService.CreateUser(model);
         }
 
         [HttpGet]

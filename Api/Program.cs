@@ -1,6 +1,6 @@
-
 using Api;
 using Api.Configs;
+using Api.Middleware;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -26,35 +26,37 @@ internal class Program
         {
             c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
             {
-                Description = "Введите токен пользователя",
+                Description = "Input user's token",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
                 Scheme = JwtBearerDefaults.AuthenticationScheme
             });
             c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            {   {
-                new OpenApiSecurityScheme
+            {   
                 {
-                    Reference = new OpenApiReference
+                    new OpenApiSecurityScheme
                     {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = JwtBearerDefaults.AuthenticationScheme,
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = JwtBearerDefaults.AuthenticationScheme,
+                        },
+                        Scheme = "oauth2",
+                        Name = JwtBearerDefaults.AuthenticationScheme,
+                        In = ParameterLocation.Header
                     },
-                    Scheme = "oauth2",
-                    Name = JwtBearerDefaults.AuthenticationScheme,
-                    In = ParameterLocation.Header
-                },
-                new List<string>()
+                    new List<string>()
                 }
             });
         });
 
         //подключение бд
         builder.Services.AddDbContext<DAL.DataContext>(options =>
-        {   //указываем провайдера бд; строка подключения - строка из конфига
+        {   
+            //указываем провайдера бд; строка подключения - строка из конфига
             options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"), sql => { });
-        });
+        }, contextLifetime: ServiceLifetime.Scoped);
 
         builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
         builder.Services.AddScoped<UserService>();
@@ -120,6 +122,8 @@ internal class Program
         app.UseAuthentication();
 
         app.UseAuthorization();
+
+        app.UseTokenValidator();
 
         app.MapControllers();
 

@@ -6,7 +6,8 @@
         public string Name { get; set; }
         public string Email { get; set; }
         public DateTimeOffset BirthDate { get; set; }
-
+        //public string? Region { get; set; }
+        //public bool Gender { get; set; }
         public UserModel(Guid id, string name, string email, DateTimeOffset birthDate)
         {
             Id = id;
