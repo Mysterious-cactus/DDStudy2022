@@ -33,6 +33,49 @@ namespace Api.Services
             return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
+        public async Task AddPost(Guid userId, PostModel model, string[] filePaths)
+        {
+            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            if (user != null)
+            {
+                List<Attach> attaches = new List<Attach>();
+                int i = 0;
+                foreach (var item in model.PostAttaches) 
+                {
+                    attaches.Add(new Attach { Author = user, FilePath = filePaths[i], MimeType = item.MimeType, Name = item.Name, Size = item.Size });
+                    i++;
+                }
+                var post = new Post { Author = user, Description = model.Description, PostAttaches = attaches, AttachPaths = filePaths };
+                user.Posts.Add(post);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddPost(Guid userId, PostModel model)
+        {
+            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            if (user != null)
+            {
+                var post = new Post { Author = user, Description = model.Description};
+                user.Posts.Add(post);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task <List<GetPostRequestModel>> GetPosts(Guid userId)
+        {
+            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            List<GetPostRequestModel> posts = new List<GetPostRequestModel>();
+            if (user!= null && user.Posts != null)
+            {
+                foreach (var post in user.Posts)
+                {
+                    posts.Add(_mapper.Map<GetPostRequestModel>(post));
+                }
+            }
+            return posts;
+        }
+
         public async Task AddAvatarToUser(Guid userId, MetadataModel meta, string filePath)
         {
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);

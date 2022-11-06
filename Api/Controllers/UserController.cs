@@ -33,8 +33,6 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize]
-        [HttpPost]
-        [Authorize]
         public async Task AddAvatarToUser(MetadataModel model)
         {
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -80,6 +78,13 @@ namespace Api.Controllers
             };
 
             return result;
+        }
+
+        [HttpGet]
+        public async Task<List<GetPostRequestModel>> GetPosts(Guid userId)
+        {
+            var posts = await _userService.GetPosts(userId);
+            return posts;
         }
 
         [HttpGet]

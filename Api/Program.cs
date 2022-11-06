@@ -106,7 +106,7 @@ internal class Program
             if (serviceScope != null)
             {
                 var context = serviceScope.ServiceProvider.GetRequiredService<DAL.DataContext>();
-                //context.Database.Migrate();
+                context.Database.Migrate();
             }
         }
 

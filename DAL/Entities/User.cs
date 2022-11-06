@@ -20,5 +20,7 @@ namespace DAL.Entities
         public long? AvatarId { get; set; }
         public virtual Avatar? Avatar { get; set; }
         public virtual ICollection<UserSession>? Sessions { get; set; }
+        public virtual List<Post>? Posts { get; set; }
+
     }
 }

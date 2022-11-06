@@ -23,6 +23,7 @@ namespace DAL
                 .IsUnique();
 
             modelBuilder.Entity<Avatar>().ToTable(nameof(Avatars));
+            modelBuilder.Entity<Post>().ToTable(nameof(Posts));
         }
         //использование пакета npgsql для миграций. Указываем билдеру, что миграции будут находить в сборке Api
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -33,5 +34,6 @@ namespace DAL
         public DbSet<UserSession> UserSessions => Set<UserSession>();
         public DbSet<Attach> Attaches => Set<Attach>();
         public DbSet<Avatar> Avatars => Set<Avatar>();
+        public DbSet<Post> Posts => Set<Post>();
     }
 }
