@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221026194130_initial")]
-    partial class initial
+    [Migration("20221103151829_renameBirth")]
+    partial class renameBirth
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,7 +31,7 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("BirthDate")
+                    b.Property<DateTimeOffset>("BirthDay")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -48,7 +48,51 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("DAL.Entities.UserSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("RefreshToken")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserSessions");
+                });
+
+            modelBuilder.Entity("DAL.Entities.UserSession", b =>
+                {
+                    b.HasOne("DAL.Entities.User", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DAL.Entities.User", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221031184326_userEmailUniqIndex")]
-    partial class userEmailUniqIndex
+    [Migration("20221025162835_inital")]
+    partial class inital
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,7 +31,7 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("BirthDate")
+                    b.Property<DateTimeOffset>("BirthDay")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -47,9 +47,6 @@ namespace Api.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.ToTable("Users");
                 });

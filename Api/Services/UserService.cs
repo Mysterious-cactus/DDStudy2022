@@ -33,9 +33,27 @@ namespace Api.Services
             return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
+        public async Task AddAvatarToUser(Guid userId, MetadataModel meta, string filePath)
+        {
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);
+            if (user != null)
+            {
+                var avatar = new Avatar { Author = user, MimeType = meta.MimeType, FilePath = filePath, Name = meta.Name, Size = meta.Size };
+                user.Avatar = avatar;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<AttachModel> GetUserAvatar(Guid userId)
+        {
+            var user = await GetUserById(userId);
+            var attach = _mapper.Map<AttachModel>(user.Avatar);
+            return attach;
+        }
+
         public async Task Delete(Guid id)
         {
-            var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var dbUser = await GetUserById(id);
             if (dbUser != null)
             {
                 _context.Users.Remove(dbUser);
@@ -67,7 +85,7 @@ namespace Api.Services
 
         public async Task<UserModel> GetUser(Guid id)
         {
-            var user = await GetUserById(id);
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             return _mapper.Map<UserModel>(user);
         }
 

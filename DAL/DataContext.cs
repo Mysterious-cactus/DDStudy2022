@@ -21,6 +21,8 @@ namespace DAL
             modelBuilder.Entity<User>()
                 .HasIndex(f => f.Email)
                 .IsUnique();
+
+            modelBuilder.Entity<Avatar>().ToTable(nameof(Avatars));
         }
         //использование пакета npgsql для миграций. Указываем билдеру, что миграции будут находить в сборке Api
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -29,5 +31,7 @@ namespace DAL
         public DbSet<User> Users => Set<User>();
         //добавляем сессии
         public DbSet<UserSession> UserSessions => Set<UserSession>();
+        public DbSet<Attach> Attaches => Set<Attach>();
+        public DbSet<Avatar> Avatars => Set<Avatar>();
     }
 }

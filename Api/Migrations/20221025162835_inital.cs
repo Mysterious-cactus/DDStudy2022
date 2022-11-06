@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class inital : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace Api.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    BirthDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    BirthDay = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

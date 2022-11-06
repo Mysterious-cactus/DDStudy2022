@@ -9,15 +9,15 @@ namespace Api.Models
         public string Password { get; set; }
         [Compare(nameof(Password))]
         public string RetryPassword { get; set; }
-        public DateTimeOffset BirthDate { get; set; }
+        public DateTimeOffset BirthDay { get; set; }
 
-        public CreateUserModel (string name, string email, string password, string retryPassword, DateTimeOffset birthDate)
+        public CreateUserModel (string name, string email, string password, string retryPassword, DateTimeOffset BirthDay)
         {
             Name = name;
             Email = email;
             Password = password;
             RetryPassword = retryPassword;
-            BirthDate = birthDate;
+            BirthDay = BirthDay;
         }
     }
 }

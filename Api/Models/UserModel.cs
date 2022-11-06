@@ -5,15 +5,13 @@
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
-        public DateTimeOffset BirthDate { get; set; }
-        //public string? Region { get; set; }
-        //public bool Gender { get; set; }
-        public UserModel(Guid id, string name, string email, DateTimeOffset birthDate)
+        public DateTimeOffset BirthDay { get; set; }
+        public UserModel(Guid id, string name, string email, DateTimeOffset BirthDay)
         {
             Id = id;
             Name = name;
             Email = email;
-            BirthDate = birthDate;
+            BirthDay = BirthDay;
         }
     }
 }

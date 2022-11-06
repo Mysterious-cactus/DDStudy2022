@@ -35,13 +35,7 @@ namespace Api.Middleware
             {
                 await _next(context);
             }
-
-
             //var principal = new JwtSecurityTokenHandler().ValidateToken(, validParams, out var securityToken);
-
-
-
-
         }
     }
     public static class TokenValidatorMiddlewareExtensions

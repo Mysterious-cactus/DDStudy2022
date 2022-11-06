@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221103141207_addSessions")]
+    [Migration("20221101145306_addSessions")]
     partial class addSessions
     {
         /// <inheritdoc />
@@ -31,7 +31,7 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("BirthDate")
+                    b.Property<DateTimeOffset>("BirthDay")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
