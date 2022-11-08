@@ -25,7 +25,7 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<List<GetCommentsRequestModel>> GetComments(long postId)
+        public async Task<List<GetCommentsRequestModel>> GetComments(Guid postId)
         {
             return await _userService.GetCommentsFromPost(postId);
         }

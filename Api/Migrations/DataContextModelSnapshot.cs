@@ -24,11 +24,9 @@ namespace Api.Migrations
 
             modelBuilder.Entity("DAL.Entities.Attach", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
@@ -45,8 +43,8 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("PostId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("PostId")
+                        .HasColumnType("uuid");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
@@ -78,8 +76,8 @@ namespace Api.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("PostId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -92,11 +90,9 @@ namespace Api.Migrations
 
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string[]>("AttachPaths")
                         .IsRequired()
@@ -124,8 +120,8 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("AvatarId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("AvatarId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("BirthDay")
                         .HasColumnType("timestamp with time zone");

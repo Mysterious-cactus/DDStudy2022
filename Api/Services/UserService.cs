@@ -45,7 +45,7 @@ namespace Api.Services
             }
         }
 
-        public async Task<List<GetCommentsRequestModel>> GetCommentsFromPost(long postId)
+        public async Task<List<GetCommentsRequestModel>> GetCommentsFromPost(Guid postId)
         {
             var post = await _context.Posts.Include(x => x.PostComments).Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == postId);
             List<GetCommentsRequestModel> comments = new List<GetCommentsRequestModel>();
@@ -102,7 +102,7 @@ namespace Api.Services
             return posts;
         }
 
-        public async Task<GetPostRequestModel> GetPostById(Guid userId, long postId)
+        public async Task<GetPostRequestModel> GetPostById(Guid userId, Guid postId)
         {
             var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
             var temp = await _context.Posts.FirstOrDefaultAsync((x => x.Id == postId));
@@ -123,7 +123,7 @@ namespace Api.Services
 
         public async Task<AttachModel> GetUserAvatar(Guid userId)
         {
-            var user = await GetUserById(userId);
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             return attach;
         }

@@ -88,7 +88,7 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<GetPostRequestModel> GetPost(Guid userId, long postId)
+        public async Task<GetPostRequestModel> GetPost(Guid userId, Guid postId)
         {
             var post = await _userService.GetPostById(userId, postId);
             return post;

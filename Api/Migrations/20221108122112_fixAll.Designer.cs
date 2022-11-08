@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221106211206_fixPosts")]
-    partial class fixPosts
+    [Migration("20221108122112_fixAll")]
+    partial class fixAll
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace Api.Migrations
 
             modelBuilder.Entity("DAL.Entities.Attach", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
@@ -48,8 +46,8 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("PostId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("PostId")
+                        .HasColumnType("uuid");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
@@ -65,13 +63,39 @@ namespace Api.Migrations
                     b.UseTptMappingStrategy();
                 });
 
+            modelBuilder.Entity("DAL.Entities.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CommentText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("Comments");
+                });
+
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string[]>("AttachPaths")
                         .IsRequired()
@@ -79,6 +103,9 @@ namespace Api.Migrations
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -96,8 +123,8 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("AvatarId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("AvatarId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("BirthDay")
                         .HasColumnType("timestamp with time zone");
@@ -172,6 +199,23 @@ namespace Api.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("DAL.Entities.Comment", b =>
+                {
+                    b.HasOne("DAL.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Entities.Post", null)
+                        .WithMany("PostComments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
                     b.HasOne("DAL.Entities.User", "Author")
@@ -215,6 +259,8 @@ namespace Api.Migrations
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
                     b.Navigation("PostAttaches");
+
+                    b.Navigation("PostComments");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
