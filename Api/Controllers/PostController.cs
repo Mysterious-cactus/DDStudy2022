@@ -1,5 +1,6 @@
 ﻿using Api.Models;
 using Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        //[Authorize]
+        [Authorize]
         public async Task CreatePost(List<MetadataModel> attaches, string description)
         {
                 var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -61,6 +62,19 @@ namespace Api.Controllers
                 throw new Exception("you are not authorized");
             }
             
+        }
+        [HttpGet]
+        public async Task<List<GetPostRequestModel>> GetPosts(Guid userId)
+        {
+            var posts = await _userService.GetPosts(userId);
+            return posts;
+        }
+
+        [HttpGet]
+        public async Task<GetPostRequestModel> GetPost(Guid userId, Guid postId)
+        {
+            var post = await _userService.GetPostById(userId, postId);
+            return post;
         }
     }
 }

@@ -81,20 +81,6 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<List<GetPostRequestModel>> GetPosts(Guid userId)
-        {
-            var posts = await _userService.GetPosts(userId);
-            return posts;
-        }
-
-        [HttpGet]
-        public async Task<GetPostRequestModel> GetPost(Guid userId, Guid postId)
-        {
-            var post = await _userService.GetPostById(userId, postId);
-            return post;
-        }
-
-        [HttpGet]
         [Authorize]
         public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
 
