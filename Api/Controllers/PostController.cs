@@ -25,7 +25,7 @@ namespace Api.Controllers
             {
                 if (attaches != null || description != null)
                 {
-                    PostModel model = new PostModel { Description = description, PostAttaches = attaches};
+                    PostModel model = new PostModel { Description = description, PostAttaches = attaches, Created = DateTime.UtcNow};
                     if (attaches != null) {
                         List<string> paths = new List<string>();
                         foreach (var attach in attaches)

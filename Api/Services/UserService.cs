@@ -33,6 +33,32 @@ namespace Api.Services
             return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
+        public async Task AddCommentToPost(Guid userId, CommentModel model)
+        {
+            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            var post = await _context.Posts.Include(x => x.PostComments).FirstOrDefaultAsync(x => x.Id == model.PostId);
+            if (user != null && post != null)
+            {
+                var comment = new Comment { Author = user, CommentText = model.CommentText, Created = model.Created, PostId = model.PostId };
+                post.PostComments.Add(comment);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<GetCommentsRequestModel>> GetCommentsFromPost(long postId)
+        {
+            var post = await _context.Posts.Include(x => x.PostComments).Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == postId);
+            List<GetCommentsRequestModel> comments = new List<GetCommentsRequestModel>();
+            if (post != null)
+            {
+                foreach (var comment in post.PostComments)
+                {
+                    comments.Add(_mapper.Map<GetCommentsRequestModel>(comment));
+                }
+            }
+            return comments;
+        }
+
         public async Task AddPost(Guid userId, PostModel model, string[] filePaths)
         {
             var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
@@ -45,7 +71,7 @@ namespace Api.Services
                     attaches.Add(new Attach { Author = user, FilePath = filePaths[i], MimeType = item.MimeType, Name = item.Name, Size = item.Size });
                     i++;
                 }
-                var post = new Post { Author = user, Description = model.Description, PostAttaches = attaches, AttachPaths = filePaths };
+                var post = new Post { Author = user, Description = model.Description, PostAttaches = attaches, AttachPaths = filePaths, Created = model.Created };
                 user.Posts.Add(post);
                 await _context.SaveChangesAsync();
             }
@@ -74,6 +100,14 @@ namespace Api.Services
                 }
             }
             return posts;
+        }
+
+        public async Task<GetPostRequestModel> GetPostById(Guid userId, long postId)
+        {
+            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            var temp = await _context.Posts.FirstOrDefaultAsync((x => x.Id == postId));
+            var post =_mapper.Map<GetPostRequestModel>(temp);
+            return post;
         }
 
         public async Task AddAvatarToUser(Guid userId, MetadataModel meta, string filePath)

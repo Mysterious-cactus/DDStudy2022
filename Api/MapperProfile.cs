@@ -17,6 +17,7 @@ namespace Api
             CreateMap<DAL.Entities.User, Models.UserModel>();
             CreateMap<DAL.Entities.Avatar, Models.AttachModel>();
             CreateMap<DAL.Entities.Post, Models.GetPostRequestModel>().ForMember(c => c.UserId, m => m.MapFrom(s => s.Author.Id));
+            CreateMap<DAL.Entities.Comment, Models.GetCommentsRequestModel>().ForMember(c => c.UserId, m => m.MapFrom(s => s.Author.Id));
         }
     }
 }
