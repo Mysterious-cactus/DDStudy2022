@@ -1,7 +1,9 @@
-﻿using Api.Models;
+﻿using Api.Consts;
+using Api.Models;
 using Api.Services;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Common.Extentions;
 using DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,24 +21,18 @@ namespace Api.Controllers
         public UserController(UserService userService)
         {
             _userService = userService;
-        }
-
-        [HttpPost]
-        public async Task CreateUser(CreateUserModel model)
-        {
-            if (await _userService.CheckUserExist(model.Email))
+            if (userService != null)
             {
-                throw new Exception("user exists");
+                _userService.SetLinkGenerator(x =>
+                Url.Action(nameof(GetUserAvatar), new { userId = x.Id, download = false }));
             }
-            await _userService.CreateUser(model);
         }
 
         [HttpPost]
-        [Authorize]
         public async Task AddAvatarToUser(MetadataModel model)
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
             {
                 var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
                 if (!tempFi.Exists)
@@ -59,37 +55,44 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<FileResult> GetUserAvatar(Guid userId)
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download = false)
         {
             var attach = await _userService.GetUserAvatar(userId);
-
-            return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
-        }
-
-        [HttpGet]
-        public async Task<FileResult> DownloadAvatar(Guid userId)
-        {
-            var attach = await _userService.GetUserAvatar(userId);
-
-            HttpContext.Response.ContentType = attach.MimeType;
-            FileContentResult result = new FileContentResult(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType)
+            var fs = new FileStream(attach.FilePath, FileMode.Open);
+            if (download)
             {
-                FileDownloadName = attach.Name
-            };
+                return File(fs, attach.MimeType, attach.Name);
+            }
+            else
+            {
+                return File(fs, attach.MimeType);
+            }
+        }
 
-            return result;
+        [HttpGet]
+        public async Task<FileStreamResult> GetCurentUserAvatar(bool download = false)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+                return await GetUserAvatar(userId, download);
+            }
+            else
+            {
+                throw new Exception("you are not authorized");
+            }
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
+        public async Task<IEnumerable<UserAvatarModel>> GetUsers() => await _userService.GetUsers();
 
         [HttpGet]
-        [Authorize]
-        public async Task<UserModel> GetCurrentUser()
+        public async Task<UserAvatarModel> GetCurrentUser()
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
             {
                 return await _userService.GetUser(userId);
             } 

@@ -2,6 +2,7 @@
 using Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Api.Controllers
 {
@@ -9,17 +10,28 @@ namespace Api.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly AuthService _authService;
         private readonly UserService _userService;
-        public AuthController(UserService userService)
+        public AuthController(UserService userService, AuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         [HttpPost]
-        public async Task<TokenModel> Token(TokenRequestModel model) => await _userService.GetToken(model.Login, model.Pass);
+        public async Task<TokenModel> Token(TokenRequestModel model) => await _authService.GetToken(model.Login, model.Pass);
 
         [HttpPost]
-        public async Task<TokenModel> RefreshToken(RefreshTokenRequestModel model) 
-            => await _userService.GetTokenByRefreshToken(model.RefreshToken);
+        public async Task<TokenModel> RefreshToken(RefreshTokenRequestModel model)
+            => await _authService.GetTokenByRefreshToken(model.RefreshToken);
+
+        [HttpPost]
+        public async Task RegisterUser(CreateUserModel model)
+        {
+            if (await _userService.CheckUserExist(model.Email))
+                throw new Exception("user is exist");
+            await _userService.CreateUser(model);
+
+        }
     }
 }
