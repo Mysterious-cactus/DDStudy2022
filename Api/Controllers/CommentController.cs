@@ -10,24 +10,24 @@ namespace Api.Controllers
     [ApiController]
     public class CommentController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly CommentService _commentService;
 
-        public CommentController(UserService userService)
+        public CommentController(CommentService commentService)
         {
-            _userService = userService;
+            _commentService = commentService;
         }
 
         [HttpPost]
         [Authorize]
         public async Task CreateComment(Guid userId, CommentModel model)
         {
-            await _userService.AddCommentToPost(userId, model);
+            await _commentService.AddCommentToPost(userId, model);
         }
 
         [HttpGet]
         public async Task<List<GetCommentsRequestModel>> GetComments(Guid postId)
         {
-            return await _userService.GetCommentsFromPost(postId);
+            return await _commentService.GetCommentsFromPost(postId);
         }
     }
 }

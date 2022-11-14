@@ -1,7 +1,8 @@
 using Api;
 using Api.Configs;
-using Api.Middleware;
+using Api.Middlewares;
 using Api.Services;
+using DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,27 +14,30 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        //----здесь добавляем и регистрируем сервисы
-        //регистрация конфигурации
+        // Add services to the container.
         var authSection = builder.Configuration.GetSection(AuthConfig.Position);
         var authConfig = authSection.Get<AuthConfig>();
+
+
         builder.Services.Configure<AuthConfig>(authSection);
 
         builder.Services.AddControllers();
+        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        //настройка интерфейса сваггера
         builder.Services.AddSwaggerGen(c =>
         {
             c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
             {
-                Description = "Input user's token",
+                Description = "Введите токен пользователя",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
-                Scheme = JwtBearerDefaults.AuthenticationScheme
+                Scheme = JwtBearerDefaults.AuthenticationScheme,
+
             });
+
             c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            {   
+            {
                 {
                     new OpenApiSecurityScheme
                     {
@@ -41,34 +45,37 @@ internal class Program
                         {
                             Type = ReferenceType.SecurityScheme,
                             Id = JwtBearerDefaults.AuthenticationScheme,
+
                         },
                         Scheme = "oauth2",
                         Name = JwtBearerDefaults.AuthenticationScheme,
-                        In = ParameterLocation.Header
+                        In = ParameterLocation.Header,
                     },
                     new List<string>()
                 }
             });
         });
 
-        //подключение бд
         builder.Services.AddDbContext<DAL.DataContext>(options =>
-        {   
-            //указываем провайдера бд; строка подключения - строка из конфига
+        {
             options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"), sql => { });
         }, contextLifetime: ServiceLifetime.Scoped);
 
+     
+
         builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
+
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<AuthService>();
-        //аутентификация != авторизация
-        //параметры аутентификации
+        builder.Services.AddScoped<PostService>();
+        builder.Services.AddScoped<CommentService>();
+
         builder.Services.AddAuthentication(o =>
         {
             o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(o =>
         {
-            o.RequireHttpsMetadata = false; //отключение проверки сертификата ssl
+            o.RequireHttpsMetadata = false;
             o.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -78,11 +85,11 @@ internal class Program
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = authConfig.SymmetricSecurityKey(),
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
             };
+            
         });
 
-        //параметры авторизации
         builder.Services.AddAuthorization(o =>
         {
             o.AddPolicy("ValidAccessToken", p =>
@@ -91,17 +98,12 @@ internal class Program
                 p.RequireAuthenticatedUser();
             });
         });
-        //----
+
+        
 
         var app = builder.Build();
 
-        //**здесь добавляем логику API
 
-        //при каждом запуске приложения будут выполняться миграции. Миграции - способ управления регрессионностью бд; способ обновлять структуру бд через код
-        //виды регистрации сервисов в Core:
-        //Scope-сервис ограничен областью применения. На несколько обращений в рамках одного запроса - используется 1 экземпляр
-        //Transient-сервис - экземпляр такого сервиса создается при каждом обращении (сколько обращений - столько экземпляров создается)
-        //Singleton-сервис
         using (var serviceScope = ((IApplicationBuilder)app).ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
         {
             if (serviceScope != null)
@@ -121,14 +123,10 @@ internal class Program
         app.UseHttpsRedirection();
 
         app.UseAuthentication();
-
         app.UseAuthorization();
-
         app.UseTokenValidator();
-
         app.MapControllers();
 
         app.Run();
-        //**
     }
 }

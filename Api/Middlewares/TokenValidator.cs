@@ -1,10 +1,12 @@
-﻿using Api.Services;
-using DAL;
-using Api.Consts;
+﻿using Api.Consts;
 using Api.Services;
 using Common.Extentions;
+using DAL;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
-namespace Api.Middleware
+namespace Api.Middlewares
 {
     public class TokenValidatorMiddleware
     {
@@ -13,7 +15,6 @@ namespace Api.Middleware
         public TokenValidatorMiddleware(RequestDelegate next)
         {
             _next = next;
-
         }
 
         public async Task InvokeAsync(HttpContext context, AuthService authService)
@@ -28,7 +29,6 @@ namespace Api.Middleware
                     isOk = false;
                     context.Response.Clear();
                     context.Response.StatusCode = 401;
-
                 }
             }
             if (isOk)

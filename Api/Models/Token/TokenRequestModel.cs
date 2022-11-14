@@ -1,4 +1,4 @@
-﻿namespace Api.Models
+﻿namespace Api.Models.Token
 {
     public class TokenRequestModel
     {
@@ -9,6 +9,16 @@
         {
             Login = login;
             Pass = pass;
+        }
+    }
+
+    public class RefreshTokenRequestModel
+    {
+        public string RefreshToken { get; set; }
+
+        public RefreshTokenRequestModel(string refreshToken)
+        {
+            RefreshToken = refreshToken;
         }
     }
 }

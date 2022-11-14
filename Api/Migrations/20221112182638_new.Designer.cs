@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221109180708_refactor")]
-    partial class refactor
+    [Migration("20221112182638_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,17 +46,12 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PostId")
-                        .HasColumnType("uuid");
-
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
-
-                    b.HasIndex("PostId");
 
                     b.ToTable("Attaches");
 
@@ -97,10 +92,6 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string[]>("AttachPaths")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
@@ -114,7 +105,7 @@ namespace Api.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Posts", (string)null);
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
@@ -141,6 +132,9 @@ namespace Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -184,6 +178,18 @@ namespace Api.Migrations
                     b.ToTable("Avatars", (string)null);
                 });
 
+            modelBuilder.Entity("DAL.Entities.PostContent", b =>
+                {
+                    b.HasBaseType("DAL.Entities.Attach");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("PostContent", (string)null);
+                });
+
             modelBuilder.Entity("DAL.Entities.Attach", b =>
                 {
                     b.HasOne("DAL.Entities.User", "Author")
@@ -191,10 +197,6 @@ namespace Api.Migrations
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("DAL.Entities.Post", null)
-                        .WithMany("PostAttaches")
-                        .HasForeignKey("PostId");
 
                     b.Navigation("Author");
                 });
@@ -255,11 +257,28 @@ namespace Api.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("DAL.Entities.PostContent", b =>
+                {
+                    b.HasOne("DAL.Entities.Attach", null)
+                        .WithOne()
+                        .HasForeignKey("DAL.Entities.PostContent", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Entities.Post", "Post")
+                        .WithMany("PostContents")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+                });
+
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
-                    b.Navigation("PostAttaches");
-
                     b.Navigation("PostComments");
+
+                    b.Navigation("PostContents");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

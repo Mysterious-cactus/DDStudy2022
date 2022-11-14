@@ -1,4 +1,5 @@
-﻿using Api.Models;
+﻿using Api.Models.Token;
+using Api.Models.User;
 using Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,15 @@ namespace Api.Controllers
     {
         private readonly AuthService _authService;
         private readonly UserService _userService;
-        public AuthController(UserService userService, AuthService authService)
+        public AuthController(AuthService authService, UserService userService)
         {
-            _userService = userService;
             _authService = authService;
+            _userService = userService;
         }
-
+        
         [HttpPost]
-        public async Task<TokenModel> Token(TokenRequestModel model) => await _authService.GetToken(model.Login, model.Pass);
+        public async Task<TokenModel> Token(TokenRequestModel model)
+            => await _authService.GetToken(model.Login, model.Pass);
 
         [HttpPost]
         public async Task<TokenModel> RefreshToken(RefreshTokenRequestModel model)
@@ -33,5 +35,6 @@ namespace Api.Controllers
             await _userService.CreateUser(model);
 
         }
+
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Api.Configs;
 using Api.Consts;
-using Api.Models;
+using Api.Models.Token;
 using AutoMapper;
 using Common;
 using DAL;
@@ -88,7 +88,7 @@ namespace Api.Services
             }
             return session;
         }
-
+        
         private async Task<User> GetUserByCredention(string login, string pass)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());

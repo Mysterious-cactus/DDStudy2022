@@ -1,8 +1,13 @@
-﻿using Api.Models;
+﻿using Api.Consts;
+using Api.Models.Attach;
+using Api.Models.Post;
 using Api.Services;
+using Common.Extentions;
+using DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace Api.Controllers
 {
@@ -10,71 +15,47 @@ namespace Api.Controllers
     [ApiController]
     public class PostController : ControllerBase
     {
-        private readonly UserService _userService;
-
-        public PostController(UserService userService)
+        private readonly PostService _postService;
+        public PostController(PostService postService)
         {
-            _userService = userService;
+            _postService = postService;
+            _postService.SetLinkGenerator( _linkContentGenerator, _linkAvatarGenerator);
         }
+
+        private string? _linkAvatarGenerator(Guid userId)
+        {
+            return Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+            {
+                userId,
+            });
+        }
+        private string? _linkContentGenerator(Guid postContentId)
+        {
+            return Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
+            {
+                postContentId,
+            });
+        }
+
+
+        [HttpGet]
+        public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
+            => await _postService.GetPosts(skip, take);
 
         [HttpPost]
-        [Authorize]
-        public async Task CreatePost(List<MetadataModel> attaches, string description)
+        public async Task CreatePost(CreatePostRequest request)
         {
-                var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
+            if (!request.AuthorId.HasValue)
             {
-                if (attaches != null || description != null)
-                {
-                    PostModel model = new PostModel { Description = description, PostAttaches = attaches, Created = DateTime.UtcNow};
-                    if (attaches != null) {
-                        List<string> paths = new List<string>();
-                        foreach (var attach in attaches)
-                        {
-                            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), attach.TempId.ToString()));
-                            if (!tempFi.Exists)
-                                throw new Exception("file not found");
-                            else
-                            {
-                                var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", attach.TempId.ToString());
-                                var destFi = new FileInfo(path);
-                                if (destFi.Directory != null && !destFi.Directory.Exists)
-                                    destFi.Directory.Create();
+                var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+                if (userId == default)
+                    throw new Exception("not authorize");
+                request.AuthorId = userId;
+            }
+            await _postService.CreatePost(request);
 
-                                System.IO.File.Copy(tempFi.FullName, path, true);
-                                paths.Add(path);
-                            }
-                        }
-                        await _userService.AddPost(userId, model, paths.ToArray());
-                    } 
-                    else
-                    {
-                        await _userService.AddPost(userId, model);
-                    }
-                }
-                else
-                {
-                    throw new Exception("empty post");
-                }
-            }
-            else
-            {
-                throw new Exception("you are not authorized");
-            }
-            
-        }
-        [HttpGet]
-        public async Task<List<GetPostRequestModel>> GetPosts(Guid userId)
-        {
-            var posts = await _userService.GetPosts(userId);
-            return posts;
         }
 
-        [HttpGet]
-        public async Task<GetPostRequestModel> GetPost(Guid userId, Guid postId)
-        {
-            var post = await _userService.GetPostById(userId, postId);
-            return post;
-        }
+
     }
 }

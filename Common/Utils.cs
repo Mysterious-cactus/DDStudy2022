@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    public static class Utils
+    public static  class Utils
     {
         public static T? Convert<T>(this string input)
         {

@@ -1,19 +1,16 @@
 ﻿using Api.Consts;
-using Api.Models;
+using Api.Models.Attach;
+using Api.Models.User;
 using Api.Services;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Common.Extentions;
-using DAL;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
@@ -21,12 +18,14 @@ namespace Api.Controllers
         public UserController(UserService userService)
         {
             _userService = userService;
-            if (userService != null)
+
+            _userService.SetLinkGenerator(x =>
+            Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
             {
-                _userService.SetLinkGenerator(x =>
-                Url.Action(nameof(GetUserAvatar), new { userId = x.Id, download = false }));
-            }
+                userId = x.Id,
+            }));
         }
+
 
         [HttpPost]
         public async Task AddAvatarToUser(MetadataModel model)
@@ -54,38 +53,8 @@ namespace Api.Controllers
 
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download = false)
-        {
-            var attach = await _userService.GetUserAvatar(userId);
-            var fs = new FileStream(attach.FilePath, FileMode.Open);
-            if (download)
-            {
-                return File(fs, attach.MimeType, attach.Name);
-            }
-            else
-            {
-                return File(fs, attach.MimeType);
-            }
-        }
 
         [HttpGet]
-        public async Task<FileStreamResult> GetCurentUserAvatar(bool download = false)
-        {
-            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            if (userId != default)
-            {
-                return await GetUserAvatar(userId, download);
-            }
-            else
-            {
-                throw new Exception("you are not authorized");
-            }
-        }
-
-        [HttpGet]
-        [Authorize]
         public async Task<IEnumerable<UserAvatarModel>> GetUsers() => await _userService.GetUsers();
 
         [HttpGet]
@@ -94,12 +63,12 @@ namespace Api.Controllers
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId != default)
             {
+
                 return await _userService.GetUser(userId);
-            } 
-            else
-            {
-                throw new Exception("you are not authorized");
             }
+            else
+                throw new Exception("you are not authorized");
+
         }
     }
 }

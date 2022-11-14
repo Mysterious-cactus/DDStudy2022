@@ -9,11 +9,12 @@ namespace DAL.Entities
     public class Post
     {
         public Guid Id { get; set; }
+        public string? Description { get; set; }
+        public Guid AuthorId { get; set; }
         public virtual User Author { get; set; } = null!;
         public DateTimeOffset Created { get; set; }
-        public List<Attach> PostAttaches { get; set; } = new List<Attach>();
-        public List<Comment> PostComments { get; set; } = new List<Comment>();
-        public string[] AttachPaths { get; set; }
-        public string? Description { get; set; }
+        public virtual ICollection<PostContent>? PostContents { get; set; }
+        public virtual ICollection<Comment>? PostComments { get; set; }
+
     }
 }
