@@ -1,5 +1,6 @@
 ﻿using Api.Configs;
 using Api.Models.Attach;
+using Api.Models.Like;
 using Api.Models.User;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -34,6 +35,44 @@ namespace Api.Services
             return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
 
         }
+
+        public List<LikeModel> GetPostLikes(Guid postId)
+        {
+            //var likes = _context.LikesPosts.Include(x => x.PostId).Include(x => x.AuthorId).TakeWhile(x => x.PostId == postId);
+            var likes = from like in _context.LikesPosts where like.PostId == postId select like;
+            List<LikeModel> likesList = new List<LikeModel>();
+            foreach (var like in likes)
+            {
+                likesList.Add(_mapper.Map<LikeModel>(like));
+            }
+            return likesList;
+        }
+
+        public List<LikeModel> GetCommentLikes(Guid commentId)
+        {
+            var likes = from like in _context.LikesComments where like.CommentId == commentId select like;
+            List<LikeModel> likesList = new List<LikeModel>();
+            foreach (var like in likes)
+            {
+                likesList.Add(_mapper.Map<LikeModel>(like));
+            }
+            return likesList;
+        }
+
+        public async Task AddLikeToPost(LikeModel model)
+        {
+            var like = new LikePost { AuthorId = model.AuthorId, PostId = model.EntityId };
+            await _context.LikesPosts.AddAsync(like);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddLikeToComment(LikeModel model)
+        {
+            var like = new LikeComment { AuthorId = model.AuthorId, CommentId = model.EntityId };
+            await _context.LikesComments.AddAsync(like);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task AddAvatarToUser(Guid userId, MetadataModel meta, string filePath)
         {
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);

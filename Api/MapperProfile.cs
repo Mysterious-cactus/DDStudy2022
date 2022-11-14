@@ -1,8 +1,10 @@
 ﻿using Api.Models.Attach;
+using Api.Models.Like;
 using Api.Models.Post;
 using Api.Models.User;
 using AutoMapper;
 using Common;
+using DAL.Entities;
 
 namespace Api
 {
@@ -31,8 +33,10 @@ namespace Api
                 .ForMember(d => d.Created, m => m.MapFrom(s => DateTime.UtcNow));
             CreateMap<DAL.Entities.Comment, Models.GetCommentsRequestModel>()
                 .ForMember(d => d.UserId, m => m.MapFrom(s => s.Author.Id));
+            CreateMap<LikePost, LikeModel>()
+                .ForMember(d => d.EntityId, m => m.MapFrom(s => s.PostId));
+            CreateMap<LikeComment, LikeModel>()
+                .ForMember(d => d.EntityId, m => m.MapFrom(s => s.CommentId));
         }
-
-
     }
 }
