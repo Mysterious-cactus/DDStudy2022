@@ -31,6 +31,17 @@ namespace Api.Services
 
         }
 
+        public async Task EnterAdditionalInfo(UserAdditionalInfoModel model, Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (user != null)
+            {
+                user.Region = model.Region;
+                user.City = model.City;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task AddSubscribe(SubscribeModel model)
         {
             var subcribe = new Subscribe { Who = model.Who, OnWhom = model.OnWhom, Created = model.Created };
@@ -115,7 +126,7 @@ namespace Api.Services
         public async Task<UserAvatarModel> GetUser(Guid id) =>
             _mapper.Map<User, UserAvatarModel>(await GetUserById(id));
 
-        public async Task<User> GetUserById(Guid id)
+        private async Task<User> GetUserById(Guid id)
         {
             var user = await _context.Users.Include(x => x.Avatar).Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null || user == default)

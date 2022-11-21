@@ -27,7 +27,17 @@ namespace Api.Controllers
                 userId = x.Id,
             });
         }
-
+        [HttpPost]
+        public async Task EnterAdditionalInfo(UserAdditionalInfoModel model)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+                await _userService.EnterAdditionalInfo(model, userId);
+            }
+            else
+                throw new Exception("you are not authorized");
+        }
         [HttpPost]
         public async Task AddSubscribe(SubscribeModel model)
         {
