@@ -5,10 +5,13 @@ using Api.Models.Post;
 using Api.Models.User;
 using AutoMapper;
 using DAL;
+using Api.Exceptions;
 using DAL.Entities;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Api.Models.Like;
+using Api.Models.Subcribes;
 
 namespace Api.Services
 {
@@ -16,13 +19,6 @@ namespace Api.Services
     {
         private readonly IMapper _mapper;
         private readonly DAL.DataContext _context;
-        private Func<Guid, string?>? _linkContentGenerator;
-        private Func<Guid, string?>? _linkAvatarGenerator;
-        public void SetLinkGenerator(Func<Guid, string?> linkContentGenerator, Func<Guid, string?> linkAvatarGenerator)
-        {
-            _linkAvatarGenerator = linkAvatarGenerator;
-            _linkContentGenerator = linkContentGenerator;
-        }
         public PostService(IMapper mapper, IOptions<AuthConfig> config, DataContext context)
         {
             _mapper = mapper;
@@ -58,45 +54,60 @@ namespace Api.Services
 
         }
 
-        public async Task<List<PostModel>> GetPosts(int skip, int take)
+        public async Task<List<PostModel>> GetPosts(int skip, int take, Guid userId)
         {
+            //var user = await _context.Users.Include(x => x.).FirstOrDefaultAsync(x => x.Id == userId);
+            var subs = await _context.Subscribes
+                .Where(x => x.Who == userId)
+                .Select(x => _mapper.Map<SubscribeModel>(x)).ToListAsync();
+            List<Guid> subscribesIds = new List<Guid>();
+            foreach(var sub in subs)
+            {
+                subscribesIds.Add(sub.OnWhom);
+            }
             var posts = await _context.Posts
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Include(x => x.PostComments).ThenInclude(x => x.Author)
-                .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take).ToListAsync();
-                
-
-            var res = posts.Select(post =>
-                new PostModel
-                {
-                    Author = _mapper.Map<User, UserAvatarModel>(post.Author, o => o.AfterMap(FixAvatar)),
-                    Description = post.Description,
-                    Id = post.Id,
-                    Contents = post.PostContents?.Select(x =>
-                    _mapper.Map<PostContent, AttachExternalModel>(x, o => o.AfterMap(FixContent))).ToList(),
-                    Comments = post.PostComments?.Select(x => _mapper.Map<GetCommentsRequestModel>(x)).ToList()
-
-                }).ToList();
-
-
-            return res;
+                .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take)
+                .Where(x => subscribesIds.Contains(x.AuthorId))
+                .Select(x => _mapper.Map<PostModel>(x))
+                .ToListAsync();
+            return posts;
 
         }
-        private void FixAvatar(User s, UserAvatarModel d)
+
+        public async Task<PostModel> GetPostById(Guid id)
         {
-            d.AvatarLink = s.Avatar == null ? null : _linkAvatarGenerator?.Invoke(s.Id);
+            var post = await _context.Posts
+                  .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                  .Include(x => x.PostContents).AsNoTracking()
+                  .Include(x => x.PostComments).ThenInclude(x => x.Author)
+                  .Where(x => x.Id == id)
+                  .Select(x => _mapper.Map<PostModel>(x))
+                  .FirstOrDefaultAsync();
+            if (post == null)
+                throw new PostNotFoundException();
+            post.LikeCount = GetPostLikes(id).Count();
+            return post;
         }
-        private void FixContent(PostContent s, AttachExternalModel d)
-        {
-            d.ContentLink = _linkContentGenerator?.Invoke(s.Id);
-        }
-
 
         public async Task<AttachModel> GetPostContent(Guid postContentId)
         {
             var res = await _context.PostContents.FirstOrDefaultAsync(x => x.Id == postContentId);
 
             return _mapper.Map<AttachModel>(res);
+        }
+
+        public List<LikeModel> GetPostLikes(Guid postId)
+        {
+            //var likes = _context.LikesPosts.Include(x => x.PostId).Include(x => x.AuthorId).Select(x => x.PostId == postId);
+            var likes = from like in _context.LikesPosts where like.PostId == postId select like;
+            List<LikeModel> likesList = new List<LikeModel>();
+            foreach (var like in likes)
+            {
+                likesList.Add(_mapper.Map<LikeModel>(like));
+            }
+            return likesList;
         }
     }
 }

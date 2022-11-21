@@ -5,38 +5,47 @@ using Api.Models.User;
 using AutoMapper;
 using Common;
 using DAL.Entities;
+using Api.Mapper.MapperActions;
+using Api.Models.Subcribes;
 
-namespace Api
+namespace Api.Mapper
 {
     public class MapperProfile : Profile
     {
         public MapperProfile()
         {
-            CreateMap<CreateUserModel, DAL.Entities.User>()
+            CreateMap<CreateUserModel, User>()
                 .ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
                 .ForMember(d => d.PasswordHash, m => m.MapFrom(s => HashHelper.GetHash(s.Password)))
                 .ForMember(d => d.BirthDay, m => m.MapFrom(s => s.BirthDate.UtcDateTime))
                 ;
-            CreateMap<DAL.Entities.User, UserModel>();
-            CreateMap<DAL.Entities.User, UserAvatarModel>();
+            CreateMap<User, UserModel>();
+            CreateMap<User, UserAvatarModel>()
+                .ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDay))
+                .ForMember(d => d.PostsCount, m => m.MapFrom(s => s.Posts!.Count))
+                .AfterMap<UserAvatarMapperAction>(); ;
 
-            CreateMap<DAL.Entities.Avatar, AttachModel>();
+            CreateMap<Avatar, AttachModel>();
+            CreateMap<Post, PostModel>()
+                .ForMember(d => d.Contents, m => m.MapFrom(d => d.PostContents))
+                .ForMember(d => d.Comments, m => m.MapFrom(d => d.PostComments));
 
-            CreateMap<DAL.Entities.PostContent, AttachModel>();
-            CreateMap<DAL.Entities.PostContent, AttachExternalModel>();
+            CreateMap<PostContent, AttachModel>();
+            CreateMap<PostContent, AttachExternalModel>().AfterMap<PostContentMapperAction>();
 
             CreateMap<CreatePostRequest, CreatePostModel>();
             CreateMap<MetadataModel, MetadataLinkModel>();
-            CreateMap<MetadataLinkModel, DAL.Entities.PostContent>();
-            CreateMap<CreatePostModel, DAL.Entities.Post>()
+            CreateMap<MetadataLinkModel, PostContent>();
+            CreateMap<CreatePostModel, Post>()
                 .ForMember(d => d.PostContents, m => m.MapFrom(s => s.Contents))
                 .ForMember(d => d.Created, m => m.MapFrom(s => DateTime.UtcNow));
-            CreateMap<DAL.Entities.Comment, Models.GetCommentsRequestModel>()
+            CreateMap<Comment, Models.GetCommentsRequestModel>()
                 .ForMember(d => d.UserId, m => m.MapFrom(s => s.Author.Id));
             CreateMap<LikePost, LikeModel>()
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.PostId));
             CreateMap<LikeComment, LikeModel>()
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.CommentId));
+            CreateMap<Subscribe, SubscribeModel>();
         }
     }
 }

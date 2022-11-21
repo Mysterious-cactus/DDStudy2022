@@ -2,30 +2,37 @@
 using Api.Models.Attach;
 using Api.Models.User;
 using Api.Services;
+using Api.Exceptions;
 using Common.Extentions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Api.Models.Subcribes;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize]
+    [ApiExplorerSettings(GroupName = "Api")]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
 
-        public UserController(UserService userService)
+        public UserController(UserService userService, LinkGeneratorService links)
         {
             _userService = userService;
-
-            _userService.SetLinkGenerator(x =>
+            links.LinkAvatarGenerator = x =>
             Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
             {
                 userId = x.Id,
-            }));
+            });
         }
 
+        [HttpPost]
+        public async Task AddSubscribe(SubscribeModel model)
+        {
+            await _userService.AddSubscribe(model);
+        }
 
         [HttpPost]
         public async Task AddAvatarToUser(MetadataModel model)
@@ -70,5 +77,12 @@ namespace Api.Controllers
                 throw new Exception("you are not authorized");
 
         }
+
+        [HttpGet]
+        public async Task<UserAvatarModel> GetUserById(Guid userId)
+        {
+            return await _userService.GetUser(userId);
+        }
+
     }
 }

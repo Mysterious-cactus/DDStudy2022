@@ -13,10 +13,12 @@ namespace Api.Controllers
     public class LikeController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly PostService _postService;
 
-        public LikeController(UserService userService)
+        public LikeController(UserService userService, PostService postService)
         {
             _userService = userService;
+            _postService = postService;
         }
 
         [HttpPost]
@@ -48,7 +50,7 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<List<LikeModel>> GetPostLikes(Guid postId)
         {
-            return _userService.GetPostLikes(postId);
+            return _postService.GetPostLikes(postId);
         }
 
         [HttpGet]
