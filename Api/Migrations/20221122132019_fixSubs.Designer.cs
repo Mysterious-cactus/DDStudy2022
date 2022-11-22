@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221121200345_addRegionAndCity")]
-    partial class addRegionAndCity
+    [Migration("20221122132019_fixSubs")]
+    partial class fixSubs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -142,7 +142,7 @@ namespace Api.Migrations
                     b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("DAL.Entities.Subscribe", b =>
+            modelBuilder.Entity("DAL.Entities.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -159,7 +159,7 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subscription");
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

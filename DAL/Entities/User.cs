@@ -18,7 +18,7 @@ namespace DAL.Entities
         public virtual Avatar? Avatar { get; set; }
         public virtual ICollection<UserSession>? Sessions { get; set; }
         public virtual ICollection<Post>? Posts { get; set; }
-        //public virtual ICollection<Guid>? Subscribes { get; set; }
-        //public virtual ICollection<Guid>? Subscribers { get; set; }
+        //public virtual ICollection<Guid> Subscribes { get; set; } = new List<Guid>();
+        //public virtual ICollection<Guid> Subscribers { get; set; } = new List<Guid>();
     }
 }

@@ -42,29 +42,33 @@ namespace Api.Services
             }
         }
 
-        public async Task AddSubscribe(SubscribeModel model)
+        public async Task Subscribe(Guid who, SubscriptionModel model)
         {
-            var subcribe = new Subscribe { Who = model.Who, OnWhom = model.OnWhom, Created = model.Created };
-            await _context.Subscribes.AddAsync(subcribe);
+            var subcription = new Subscription { Who = who, OnWhom = model.OnWhom, Created = model.Created };
+            await _context.Subscriptions.AddAsync(subcription);
+            //var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == who);
+            //var userOnWhom = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.OnWhom);
+            //if (currentUser != null && userOnWhom != null)
+            //{
+            //    currentUser.Subscribes.ToList().Add(model.OnWhom);
+            //    userOnWhom.Subscribers.ToList().Add(who);
+            //}
             await _context.SaveChangesAsync();
         }
 
-        public List<LikeModel> GetCommentLikes(Guid commentId)
+        public async Task<IEnumerable<LikeModel>> GetCommentLikes(Guid commentId)
         {
-            var likes = from like in _context.LikesComments where like.CommentId == commentId select like;
-            List<LikeModel> likesList = new List<LikeModel>();
-            foreach (var like in likes)
-            {
-                likesList.Add(_mapper.Map<LikeModel>(like));
-            }
-            return likesList;
-        }
-
-        public async Task AddLikeToPost(LikeModel model)
-        {
-            var like = new LikePost { AuthorId = model.AuthorId, PostId = model.EntityId };
-            await _context.LikesPosts.AddAsync(like);
-            await _context.SaveChangesAsync();
+            var likes = await _context.LikesComments.AsNoTracking()
+                .Where(x => x.CommentId == commentId)
+                .Select(x => _mapper.Map<LikeModel>(x))
+                .ToListAsync();
+            //var likes = from like in _context.LikesComments where like.CommentId == commentId select like;
+            //List<LikeModel> likesList = new List<LikeModel>();
+            //foreach (var like in likes)
+            //{
+            //    likesList.Add(_mapper.Map<LikeModel>(like));
+            //}
+            return likes;
         }
 
         public async Task AddLikeToComment(LikeModel model)
@@ -110,7 +114,7 @@ namespace Api.Services
         }
         public async Task<Guid> CreateUser(CreateUserModel model)
         {
-            var dbUser = _mapper.Map<DAL.Entities.User>(model);
+            var dbUser = _mapper.Map<User>(model);
             var t = await _context.Users.AddAsync(dbUser);
             await _context.SaveChangesAsync();
             return t.Entity.Id;
@@ -123,12 +127,21 @@ namespace Api.Services
             .ToListAsync();
 
 
-        public async Task<UserAvatarModel> GetUser(Guid id) =>
-            _mapper.Map<User, UserAvatarModel>(await GetUserById(id));
+        public async Task<UserAvatarModel> GetUser(Guid id)
+        {
+            var user = _mapper.Map<User, UserAvatarModel>(await GetUserById(id));
+            user.Subscribers = await _context.Subscriptions.Where(x => x.OnWhom == id).Select(x => x.Who).ToListAsync();
+            user.Subscriptions = await _context.Subscriptions.Where(x => x.Who == id).Select(x => x.OnWhom).ToListAsync();
+            return user;
+        }
 
         private async Task<User> GetUserById(Guid id)
         {
-            var user = await _context.Users.Include(x => x.Avatar).Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _context.Users.Include(x => x.Avatar)
+                .Include(x => x.Posts)
+                //.Include(x => x.Subscribers)
+                //.Include(x => x.Subscribes)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (user == null || user == default)
                 throw new UserNotFoundException();
             return user;

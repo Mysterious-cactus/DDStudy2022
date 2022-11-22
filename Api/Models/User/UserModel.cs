@@ -11,6 +11,8 @@ namespace Api.Models.User
         public string City { get; set; } = null!;
         public DateTimeOffset BirthDate { get; set; }
         public int PostsCount { get; set; }
+        public List<Guid>? Subscriptions { get; set; }
+        public List<Guid>? Subscribers { get; set; }
     }
 
     public class UserAvatarModel : UserModel

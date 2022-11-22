@@ -23,7 +23,8 @@ namespace Api.Mapper
             CreateMap<User, UserAvatarModel>()
                 .ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDay))
                 .ForMember(d => d.PostsCount, m => m.MapFrom(s => s.Posts!.Count))
-                .AfterMap<UserAvatarMapperAction>(); ;
+                .AfterMap<UserAvatarMapperAction>();
+                //.AfterMap<SubsMapperAction>();
 
             CreateMap<Avatar, AttachModel>();
             CreateMap<Post, PostModel>()
@@ -45,7 +46,7 @@ namespace Api.Mapper
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.PostId));
             CreateMap<LikeComment, LikeModel>()
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.CommentId));
-            CreateMap<Subscribe, SubscribeModel>();
+            CreateMap<Subscription, SubscriptionModel>();
         }
     }
 }

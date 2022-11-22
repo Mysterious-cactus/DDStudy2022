@@ -43,6 +43,6 @@ namespace DAL
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<LikePost> LikesPosts => Set<LikePost>();
         public DbSet<LikeComment> LikesComments => Set<LikeComment>();
-        public DbSet<Subscribe> Subscribes => Set<Subscribe>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
     }
 }

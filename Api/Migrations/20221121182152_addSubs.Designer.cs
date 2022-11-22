@@ -159,7 +159,7 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subscribes");
+                    b.ToTable("Subscription");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

@@ -32,7 +32,7 @@ namespace Api.Controllers
                 throw new Exception("not authorize");
             }
             request.AuthorId = userId;
-            await _userService.AddLikeToPost(request);
+            await _postService.AddLikeToPost(request);
         }
 
         [HttpPost]
@@ -49,15 +49,15 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<List<LikeModel>> GetPostLikes(Guid postId)
+        public async Task<IEnumerable<LikeModel>> GetPostLikes(Guid postId)
         {
-            return _postService.GetPostLikes(postId);
+            return await _postService.GetPostLikes(postId);
         }
 
         [HttpGet]
-        public async Task<List<LikeModel>> GetCommentLikes(Guid commentId)
+        public async Task<IEnumerable<LikeModel>> GetCommentLikes(Guid commentId)
         {
-            return _userService.GetCommentLikes(commentId);
+            return await _userService.GetCommentLikes(commentId);
         }
     }
 }

@@ -39,9 +39,13 @@ namespace Api.Controllers
                 throw new Exception("you are not authorized");
         }
         [HttpPost]
-        public async Task AddSubscribe(SubscribeModel model)
+        public async Task Subscribe(SubscriptionModel model)
         {
-            await _userService.AddSubscribe(model);
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+                await _userService.Subscribe(userId, model);
+            }
         }
 
         [HttpPost]

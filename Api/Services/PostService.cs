@@ -12,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Api.Models.Like;
 using Api.Models.Subcribes;
+using System.ComponentModel.Design;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Api.Services
 {
@@ -53,25 +56,40 @@ namespace Api.Services
             await _context.SaveChangesAsync();
 
         }
+        public async Task AddLikeToPost(LikeModel model)
+        {
+            var like = new LikePost { AuthorId = model.AuthorId, PostId = model.EntityId };
+            await _context.LikesPosts.AddAsync(like);
+            await _context.SaveChangesAsync();
+        }
 
         public async Task<List<PostModel>> GetPosts(int skip, int take, Guid userId)
         {
-            //var user = await _context.Users.Include(x => x.).FirstOrDefaultAsync(x => x.Id == userId);
-            var subs = await _context.Subscribes
-                .Where(x => x.Who == userId)
-                .Select(x => _mapper.Map<SubscribeModel>(x)).ToListAsync();
+            //var user = await _context.Users.Include(x => x.Subscribes).FirstOrDefaultAsync(x => x.Id == userId);
+             var subs = await _context.Subscriptions
+                 .Where(x => x.Who == userId)
+                 .Select(x => _mapper.Map<SubscriptionModel>(x)).ToListAsync();
             List<Guid> subscribesIds = new List<Guid>();
-            foreach(var sub in subs)
+            foreach (var sub in subs)
             {
                 subscribesIds.Add(sub.OnWhom);
             }
-            var posts = await _context.Posts
-                .Include(x => x.Author).ThenInclude(x => x.Avatar)
-                .Include(x => x.PostComments).ThenInclude(x => x.Author)
-                .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take)
-                .Where(x => subscribesIds.Contains(x.AuthorId))
-                .Select(x => _mapper.Map<PostModel>(x))
-                .ToListAsync();
+            List<PostModel> posts = new List<PostModel>();
+            //if (user != null)
+            //{
+                    posts = await _context.Posts
+                    .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                    .Include(x => x.PostComments).ThenInclude(x => x.Author)
+                    .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take)
+                    
+                    .Where(x => subscribesIds.Contains(x.AuthorId))
+                    .Select(x => _mapper.Map<PostModel>(x))
+                    .ToListAsync();
+            //}
+            foreach (var post in posts)
+            {
+                post.LikeCount = (await GetPostLikes(post.Id)).Count();
+            }
             return posts;
 
         }
@@ -87,7 +105,7 @@ namespace Api.Services
                   .FirstOrDefaultAsync();
             if (post == null)
                 throw new PostNotFoundException();
-            post.LikeCount = GetPostLikes(id).Count();
+            post.LikeCount = (await GetPostLikes(id)).Count();
             return post;
         }
 
@@ -98,16 +116,20 @@ namespace Api.Services
             return _mapper.Map<AttachModel>(res);
         }
 
-        public List<LikeModel> GetPostLikes(Guid postId)
+        public async Task<IEnumerable<LikeModel>> GetPostLikes(Guid postId)
         {
             //var likes = _context.LikesPosts.Include(x => x.PostId).Include(x => x.AuthorId).Select(x => x.PostId == postId);
-            var likes = from like in _context.LikesPosts where like.PostId == postId select like;
-            List<LikeModel> likesList = new List<LikeModel>();
-            foreach (var like in likes)
-            {
-                likesList.Add(_mapper.Map<LikeModel>(like));
-            }
-            return likesList;
+            var likes = await _context.LikesPosts.AsNoTracking()
+                .Where(x => x.PostId == postId)
+                .Select(x => _mapper.Map<LikeModel>(x))
+                .ToListAsync();
+            //var likes = from like in _context.LikesPosts where like.PostId == postId select like;
+            //List<LikeModel> likesList = new List<LikeModel>();
+            //foreach (var like in likes)
+            //{
+            //    likesList.Add(_mapper.Map<LikeModel>(like));
+            //}
+            return likes;
         }
     }
 }

@@ -139,7 +139,7 @@ namespace Api.Migrations
                     b.ToTable("Posts");
                 });
 
-            modelBuilder.Entity("DAL.Entities.Subscribe", b =>
+            modelBuilder.Entity("DAL.Entities.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -156,7 +156,7 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subscribes");
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>

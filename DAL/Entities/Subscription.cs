@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Entities
 {
-    public class Subscribe
+    public class Subscription
     {
         public Guid Id { get; set; }
         public Guid Who { get; set; }
