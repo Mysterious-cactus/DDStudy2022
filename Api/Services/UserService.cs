@@ -146,5 +146,24 @@ namespace Api.Services
                 throw new UserNotFoundException();
             return user;
         }
+
+        public async Task<UserAvatarModel> FindUserByName(string username)
+        {
+            UserAvatarModel? user;
+            var u = await _context.Users.Include(x => x.Avatar)
+                .Include(x => x.Posts)
+                .FirstOrDefaultAsync(x => x.Name == username);
+            if (u == null || u == default)
+            {
+                user = null;
+                throw new UserNotFoundException();
+            } else
+            {
+                user = _mapper.Map<User, UserAvatarModel>(u);
+                user.Subscribers = await _context.Subscriptions.Where(x => x.OnWhom == x.Id).Select(x => x.Who).ToListAsync();
+                user.Subscriptions = await _context.Subscriptions.Where(x => x.Who == x.Id).Select(x => x.OnWhom).ToListAsync();
+            }
+            return user;
+        }
     }
 }

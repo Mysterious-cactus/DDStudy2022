@@ -80,9 +80,10 @@ namespace Api.Services
                     posts = await _context.Posts
                     .Include(x => x.Author).ThenInclude(x => x.Avatar)
                     .Include(x => x.PostComments).ThenInclude(x => x.Author)
+                    .Where(x => subscribesIds.Contains(x.AuthorId))
                     .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take)
                     
-                    .Where(x => subscribesIds.Contains(x.AuthorId))
+                    
                     .Select(x => _mapper.Map<PostModel>(x))
                     .ToListAsync();
             //}

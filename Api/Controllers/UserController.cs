@@ -98,5 +98,10 @@ namespace Api.Controllers
             return await _userService.GetUser(userId);
         }
 
+        [HttpGet]
+        public async Task<UserAvatarModel> FindUserByName(string username)
+        {
+            return await _userService.FindUserByName(username);
+        }
     }
 }
