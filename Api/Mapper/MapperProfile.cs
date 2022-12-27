@@ -30,6 +30,9 @@ namespace Api.Mapper
             CreateMap<Post, PostModel>()
                 .ForMember(d => d.Contents, m => m.MapFrom(d => d.PostContents))
                 .ForMember(d => d.Comments, m => m.MapFrom(d => d.PostComments));
+            CreateMap<Post, ProfilePostModel>()
+                .ForMember(d => d.Contents, m => m.MapFrom(d => d.PostContents))
+                .ForMember(d => d.Comments, m => m.MapFrom(d => d.PostComments));
 
             CreateMap<PostContent, AttachModel>();
             CreateMap<PostContent, AttachExternalModel>().AfterMap<PostContentMapperAction>();
@@ -47,6 +50,7 @@ namespace Api.Mapper
             CreateMap<LikeComment, LikeModel>()
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.CommentId));
             CreateMap<Subscription, SubscriptionModel>();
+
         }
     }
 }

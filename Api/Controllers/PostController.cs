@@ -56,6 +56,16 @@ namespace Api.Controllers
 
         }
 
+        [HttpGet]
+        public async Task<List<ProfilePostModel>> GetCurrentUserPosts()
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId == default)
+            {
+                throw new Exception("not authorize");
+            }
+            return await _postService.GetCurrentUserPosts(userId);
+        }
 
     }
 }
