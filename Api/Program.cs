@@ -72,6 +72,7 @@ internal class Program
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddScoped<LinkGeneratorService>();
+        builder.Services.AddScoped<SubscriptionService>();
 
         builder.Services.AddAuthentication(o =>
         {

@@ -38,15 +38,6 @@ namespace Api.Controllers
             else
                 throw new Exception("you are not authorized");
         }
-        [HttpPost]
-        public async Task Subscribe(SubscriptionModel model)
-        {
-            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-            if (userId != default)
-            {
-                await _userService.Subscribe(userId, model);
-            }
-        }
 
         [HttpPost]
         public async Task AddAvatarToUser(MetadataModel model)
@@ -76,7 +67,16 @@ namespace Api.Controllers
 
 
         [HttpGet]
-        public async Task<IEnumerable<UserAvatarModel>> GetUsers() => await _userService.GetUsers();
+        public async Task<IEnumerable<UserAvatarModel>> GetUsers()
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+               return await _userService.GetUsers(userId);
+            }
+            else
+                throw new Exception("you are not authorized");
+        }
 
         [HttpGet]
         public async Task<UserAvatarModel> GetCurrentUser()

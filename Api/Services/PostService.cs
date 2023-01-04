@@ -136,6 +136,8 @@ namespace Api.Services
         public async Task<List<ProfilePostModel>> GetCurrentUserPosts(Guid userId)
         {
             var posts = await _context.Posts
+                .Include(x => x.PostContents).AsNoTracking()
+                .Include(x => x.PostComments).ThenInclude(x => x.Author)
                 .Where(x => x.AuthorId == userId)
                 .Select(x => _mapper.Map<ProfilePostModel>(x))
                 .ToListAsync();

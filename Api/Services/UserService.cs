@@ -42,20 +42,6 @@ namespace Api.Services
             }
         }
 
-        public async Task Subscribe(Guid who, SubscriptionModel model)
-        {
-            var subcription = new Subscription { Who = who, OnWhom = model.OnWhom, Created = model.Created };
-            await _context.Subscriptions.AddAsync(subcription);
-            //var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == who);
-            //var userOnWhom = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.OnWhom);
-            //if (currentUser != null && userOnWhom != null)
-            //{
-            //    currentUser.Subscribes.ToList().Add(model.OnWhom);
-            //    userOnWhom.Subscribers.ToList().Add(who);
-            //}
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<LikeModel>> GetCommentLikes(Guid commentId)
         {
             var likes = await _context.LikesComments.AsNoTracking()
@@ -100,8 +86,8 @@ namespace Api.Services
         public async Task<AttachModel> GetUserAvatar(Guid userId)
         {
             var user = await GetUserById(userId);
-            var atach = _mapper.Map<AttachModel>(user.Avatar);
-            return atach;
+            var attach = _mapper.Map<AttachModel>(user.Avatar);
+            return attach;
         }
         public async Task Delete(Guid id)
         {
@@ -119,10 +105,11 @@ namespace Api.Services
             await _context.SaveChangesAsync();
             return t.Entity.Id;
         }
-        public async Task<IEnumerable<UserAvatarModel>> GetUsers() =>
+        public async Task<IEnumerable<UserAvatarModel>> GetUsers(Guid userId) =>
             await _context.Users.AsNoTracking()
             .Include(x => x.Avatar)
             .Include(x => x.Posts)
+            .Include(x => x.Id != userId)
             .Select(x => _mapper.Map<UserAvatarModel>(x))
             .ToListAsync();
 
