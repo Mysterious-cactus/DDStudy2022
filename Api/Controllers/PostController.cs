@@ -32,7 +32,14 @@ namespace Api.Controllers
 
         [HttpGet]
         public async Task<PostModel> GetPostById(Guid id)
-            => await _postService.GetPostById(id);
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId == default)
+            {
+                throw new Exception("not authorize");
+            }
+            return await _postService.GetPostById(id, userId); 
+        }
 
         [HttpGet]
         public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)

@@ -27,17 +27,10 @@ namespace Api.Services
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task Subscribe(Guid who, SubscriptionModel model)
+        public async Task Subscribe(Guid who, Guid onWhom)
         {
-            var subcription = new Subscription { Who = who, OnWhom = model.OnWhom, Created = model.Created };
-            await _context.Subscriptions.AddAsync(subcription);
-            //var currentUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == who);
-            //var userOnWhom = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.OnWhom);
-            //if (currentUser != null && userOnWhom != null)
-            //{
-            //    currentUser.Subscribes.ToList().Add(model.OnWhom);
-            //    userOnWhom.Subscribers.ToList().Add(who);
-            //}
+            var subscription = new Subscription { Who = who, OnWhom = onWhom, Created = DateTimeOffset.UtcNow};
+            await _context.Subscriptions.AddAsync(subscription);
             await _context.SaveChangesAsync();
         }
     }

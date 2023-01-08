@@ -43,8 +43,8 @@ namespace Api.Mapper
             CreateMap<CreatePostModel, Post>()
                 .ForMember(d => d.PostContents, m => m.MapFrom(s => s.Contents))
                 .ForMember(d => d.Created, m => m.MapFrom(s => DateTime.UtcNow));
-            CreateMap<Comment, Models.GetCommentsRequestModel>()
-                .ForMember(d => d.UserId, m => m.MapFrom(s => s.Author.Id));
+            CreateMap<Comment, Models.GetCommentsRequestModel>();
+
             CreateMap<LikePost, LikeModel>()
                 .ForMember(d => d.EntityId, m => m.MapFrom(s => s.PostId));
             CreateMap<LikeComment, LikeModel>()

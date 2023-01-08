@@ -15,49 +15,73 @@ namespace Api.Controllers
     {
         private readonly UserService _userService;
         private readonly PostService _postService;
+        private readonly CommentService _commentService;
 
-        public LikeController(UserService userService, PostService postService)
+        public LikeController(UserService userService, PostService postService, CommentService commentService)
         {
             _userService = userService;
             _postService = postService;
+            _commentService = commentService;
         }
 
         [HttpPost]
         [Authorize]
-        public async Task AddLikeToPost(LikeModel request)
+        public async Task AddLikeToPost(Guid postId)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId == default)
             {
                 throw new Exception("not authorize");
             }
-            request.AuthorId = userId;
-            await _postService.AddLikeToPost(request);
+            await _postService.AddLikeToPost(userId, postId);
         }
 
         [HttpPost]
         [Authorize]
-        public async Task AddLikeToComment(LikeModel request)
+        public async Task AddLikeToComment(Guid commentId)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId == default)
             {
                 throw new Exception("not authorize");
             }
-            request.AuthorId = userId;
-            await _userService.AddLikeToComment(request);
+            await _commentService.AddLikeToComment(userId, commentId);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task RemoveLikeFromComment(Guid commentId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId == default)
+            {
+                throw new Exception("not authorize");
+            }
+            await _commentService.RemoveLikeFromComment(userId, commentId);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task RemoveLikeFromPost(Guid postId)
+        {
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId == default)
+            {
+                throw new Exception("not authorize");
+            }
+            await _postService.RemoveLikeFromPost(userId, postId);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<LikeModel>> GetPostLikes(Guid postId)
+        public async Task<IEnumerable<Guid>> GetPostLikes(Guid postId)
         {
             return await _postService.GetPostLikes(postId);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<LikeModel>> GetCommentLikes(Guid commentId)
+        public async Task<IEnumerable<Guid>> GetCommentLikes(Guid commentId)
         {
-            return await _userService.GetCommentLikes(commentId);
+            return await _commentService.GetCommentLikes(commentId);
         }
     }
 }

@@ -21,8 +21,8 @@ namespace Api.Services
     public class PostService
     {
         private readonly IMapper _mapper;
-        private readonly DAL.DataContext _context;
-        public PostService(IMapper mapper, IOptions<AuthConfig> config, DataContext context)
+        private readonly DataContext _context;
+        public PostService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
             _context = context;
@@ -56,16 +56,15 @@ namespace Api.Services
             await _context.SaveChangesAsync();
 
         }
-        public async Task AddLikeToPost(LikeModel model)
+        public async Task AddLikeToPost(Guid userId, Guid postId)
         {
-            var like = new LikePost { AuthorId = model.AuthorId, PostId = model.EntityId };
+            var like = new LikePost { AuthorId = userId, PostId = postId };
             await _context.LikesPosts.AddAsync(like);
             await _context.SaveChangesAsync();
         }
 
         public async Task<List<PostModel>> GetPosts(int skip, int take, Guid userId)
         {
-            //var user = await _context.Users.Include(x => x.Subscribes).FirstOrDefaultAsync(x => x.Id == userId);
              var subs = await _context.Subscriptions
                  .Where(x => x.Who == userId)
                  .Select(x => _mapper.Map<SubscriptionModel>(x)).ToListAsync();
@@ -74,39 +73,38 @@ namespace Api.Services
             {
                 subscribesIds.Add(sub.OnWhom);
             }
-            List<PostModel> posts = new List<PostModel>();
-            //if (user != null)
-            //{
-                    posts = await _context.Posts
+            var posts = await _context.Posts
                     .Include(x => x.Author).ThenInclude(x => x.Avatar)
                     .Include(x => x.PostComments).ThenInclude(x => x.Author)
                     .Where(x => subscribesIds.Contains(x.AuthorId))
                     .Include(x => x.PostContents).AsNoTracking().OrderByDescending(x => x.Created).Skip(skip).Take(take)
-                    
-                    
                     .Select(x => _mapper.Map<PostModel>(x))
                     .ToListAsync();
-            //}
             foreach (var post in posts)
             {
-                post.LikeCount = (await GetPostLikes(post.Id)).Count();
+                var likes = await GetPostLikes(post.Id);
+                post.LikedByMe = likes.Contains(userId) ? 1 : 0;
+                post.LikeCount = likes.Count();
+                post.CommentCount = post.Comments != null ? post.Comments.Count() : 0;
             }
             return posts;
 
         }
 
-        public async Task<PostModel> GetPostById(Guid id)
+        public async Task<PostModel> GetPostById(Guid id, Guid userId)
         {
             var post = await _context.Posts
                   .Include(x => x.Author).ThenInclude(x => x.Avatar)
                   .Include(x => x.PostContents).AsNoTracking()
-                  .Include(x => x.PostComments).ThenInclude(x => x.Author)
+                  .Include(x => x.PostComments).ThenInclude(x => x.Author).ThenInclude(x => x.Avatar)
                   .Where(x => x.Id == id)
                   .Select(x => _mapper.Map<PostModel>(x))
                   .FirstOrDefaultAsync();
             if (post == null)
                 throw new PostNotFoundException();
-            post.LikeCount = (await GetPostLikes(id)).Count();
+            var likes = await GetPostLikes(id);
+            post.LikeCount = likes.Count();
+            post.LikedByMe =  likes.Contains(userId) ? 1 : 0;
             return post;
         }
 
@@ -117,19 +115,12 @@ namespace Api.Services
             return _mapper.Map<AttachModel>(res);
         }
 
-        public async Task<IEnumerable<LikeModel>> GetPostLikes(Guid postId)
+        public async Task<IEnumerable<Guid>> GetPostLikes(Guid postId)
         {
-            //var likes = _context.LikesPosts.Include(x => x.PostId).Include(x => x.AuthorId).Select(x => x.PostId == postId);
             var likes = await _context.LikesPosts.AsNoTracking()
                 .Where(x => x.PostId == postId)
-                .Select(x => _mapper.Map<LikeModel>(x))
+                .Select(x => x.AuthorId)
                 .ToListAsync();
-            //var likes = from like in _context.LikesPosts where like.PostId == postId select like;
-            //List<LikeModel> likesList = new List<LikeModel>();
-            //foreach (var like in likes)
-            //{
-            //    likesList.Add(_mapper.Map<LikeModel>(like));
-            //}
             return likes;
         }
 
@@ -138,10 +129,30 @@ namespace Api.Services
             var posts = await _context.Posts
                 .Include(x => x.PostContents).AsNoTracking()
                 .Include(x => x.PostComments).ThenInclude(x => x.Author)
+                .OrderByDescending(x => x.Created)
                 .Where(x => x.AuthorId == userId)
                 .Select(x => _mapper.Map<ProfilePostModel>(x))
                 .ToListAsync();
+            foreach (var post in posts)
+            {
+                var likes = await GetPostLikes(post.Id);
+                post.LikedByMe = likes.Contains(userId) ? 1 : 0;
+                post.LikeCount = likes.Count();
+                post.CommentCount = post.Comments != null ? post.Comments.Count() : 0;
+            }
             return posts;
+        }
+
+        public async Task RemoveLikeFromPost(Guid userId, Guid postId)
+        {
+            var like = await _context.LikesPosts
+                .Where(x => x.PostId == postId && x.AuthorId == userId)
+                .FirstOrDefaultAsync();
+            if (like != null)
+            {
+                _context.LikesPosts.Remove(like);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

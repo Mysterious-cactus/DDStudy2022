@@ -22,16 +22,16 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task Subscribe(SubscriptionModel model)
+        public async Task Subscribe(Guid onWhom)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
             if (userId != default)
             {
-                await _subsService.Subscribe(userId, model);
+                await _subsService.Subscribe(userId, onWhom);
             }
         }
 
-        [HttpDelete]
+        [HttpPost]
         public async Task UnSubscribe(Guid fromWhom)
         {
             var userId = User.GetClaimValue<Guid>(ClaimNames.Id);

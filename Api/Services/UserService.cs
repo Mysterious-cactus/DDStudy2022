@@ -42,28 +42,6 @@ namespace Api.Services
             }
         }
 
-        public async Task<IEnumerable<LikeModel>> GetCommentLikes(Guid commentId)
-        {
-            var likes = await _context.LikesComments.AsNoTracking()
-                .Where(x => x.CommentId == commentId)
-                .Select(x => _mapper.Map<LikeModel>(x))
-                .ToListAsync();
-            //var likes = from like in _context.LikesComments where like.CommentId == commentId select like;
-            //List<LikeModel> likesList = new List<LikeModel>();
-            //foreach (var like in likes)
-            //{
-            //    likesList.Add(_mapper.Map<LikeModel>(like));
-            //}
-            return likes;
-        }
-
-        public async Task AddLikeToComment(LikeModel model)
-        {
-            var like = new LikeComment { AuthorId = model.AuthorId, CommentId = model.EntityId };
-            await _context.LikesComments.AddAsync(like);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task AddAvatarToUser(Guid userId, MetadataModel meta, string filePath)
         {
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);
@@ -109,7 +87,7 @@ namespace Api.Services
             await _context.Users.AsNoTracking()
             .Include(x => x.Avatar)
             .Include(x => x.Posts)
-            .Include(x => x.Id != userId)
+            .Where(x => x.Id != userId)
             .Select(x => _mapper.Map<UserAvatarModel>(x))
             .ToListAsync();
 

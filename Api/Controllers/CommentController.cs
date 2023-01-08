@@ -1,5 +1,7 @@
-﻿using Api.Models;
+﻿using Api.Consts;
+using Api.Models;
 using Api.Services;
+using Common.Extentions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,15 +22,23 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task CreateComment(Guid userId, CommentModel model)
+        public async Task CreateComment(CommentModel model)
         {
-            await _commentService.AddCommentToPost(userId, model);
+            var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+            if (userId != default)
+            {
+
+                await _commentService.AddCommentToPost(userId, model);
+            }
+            else
+                throw new Exception("you are not authorized");
+            
         }
 
-        [HttpGet]
-        public async Task<List<GetCommentsRequestModel>> GetComments(Guid postId)
-        {
-            return await _commentService.GetCommentsFromPost(postId);
-        }
+        //[HttpGet]
+        //public async Task<List<GetCommentsRequestModel>> GetComments(Guid postId)
+        //{
+        //    return await _commentService.GetCommentsFromPost(postId);
+        //}
     }
 }
